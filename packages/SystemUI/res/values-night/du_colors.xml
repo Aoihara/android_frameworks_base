@@ -16,11 +16,14 @@
     <!-- QS date color-->
     <color name="qs_date_color">#FFFFFFFF</color>
 
+    <!-- Brigtness slider color -->
     <color name="brightness_slider_progress">#9B9B9D</color>
     <color name="brightness_slider_background">@android:color/black</color>
     <color name="brightness_slider_icons">@android:color/white</color>
 
-    <color name="recents_dismiss_all_background_color">#141414</color>
+    <!-- OOS Dismiss all -->
+    <color name="recents_dismiss_all_background_color">@color/GM2_grey_900</color>
+    <color name="recents_dismiss_all_background_color_ripple">#555555</color>
     <color name="recents_dismiss_all_icon_color">@android:color/white</color>
 
 </resources>
