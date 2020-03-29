@@ -6322,15 +6322,12 @@ public final class Settings {
         private static final Validator BRIGHTNESS_SLIDER_QS_UNEXPANDED_VALIDATOR = new
                 SettingsValidators.InclusiveIntegerRangeValidator(0, 1);
 
-<<<<<<< HEAD
         /**
          * DismissAll Button
          * @hide
          */
         public static final String DISMISS_ALL_BUTTON = "dismiss_all_button";
 
-=======
->>>>>>> 2b025355451fb261c043c0ea785cb342f28b91f6
         /**
          * Settings to backup. This is here so that it's in the same place as the settings
          * keys and easy to update.
