@@ -16,6 +16,7 @@
     <!-- QS date color-->
     <color name="qs_date_color">#FFFFFFFF</color>
 
+<<<<<<< HEAD
     <!-- Brigtness slider color -->
     <color name="brightness_slider_progress">#9B9B9D</color>
     <color name="brightness_slider_background">@android:color/black</color>
@@ -26,4 +27,9 @@
     <color name="recents_dismiss_all_background_color_ripple">#555555</color>
     <color name="recents_dismiss_all_icon_color">@android:color/white</color>
 
+=======
+    <color name="brightness_slider_progress">#9B9B9D</color>
+    <color name="brightness_slider_background">@android:color/black</color>
+    <color name="brightness_slider_icons">@android:color/white</color>
+>>>>>>> 2b025355451fb261c043c0ea785cb342f28b91f6
 </resources>
