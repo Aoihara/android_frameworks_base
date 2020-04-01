@@ -31,6 +31,8 @@ import android.content.Context;
 import android.content.ContentResolver;
 import android.content.res.Configuration;
 import android.content.res.Resources;
+import android.database.ContentObserver;
+import android.net.Uri;
 import android.metrics.LogMaker;
 import android.os.Bundle;
 import android.os.Handler;
@@ -38,6 +40,7 @@ import android.os.UserHandle;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.os.Message;
+import android.os.UserHandle;
 import android.provider.Settings;
 import android.service.quicksettings.Tile;
 import android.util.AttributeSet;
@@ -103,6 +106,7 @@ public class QSPanel extends LinearLayout implements Tunable, Callback, Brightne
 
     protected boolean mExpanded;
     protected boolean mListening;
+    private SettingObserver mSettingObserver;
     private boolean mIsAutomaticBrightnessAvailable = false;
 
     private QSDetail.Callback mCallback;
@@ -126,6 +130,7 @@ public class QSPanel extends LinearLayout implements Tunable, Callback, Brightne
     private int mBrightnessSlider = 1;
 
     private final Vibrator mVibrator;
+    private boolean mQSBrightnessSlider;
 
     public QSPanel(Context context) {
         this(context, null);
@@ -144,6 +149,9 @@ public class QSPanel extends LinearLayout implements Tunable, Callback, Brightne
         final ContentResolver resolver = context.getContentResolver();
 
         mVibrator = (Vibrator) mContext.getSystemService(Context.VIBRATOR_SERVICE);
+
+        mSettingObserver = new SettingObserver(new Handler(context.getMainLooper()));
+
         setOrientation(VERTICAL);
 
         mBrightnessView = LayoutInflater.from(mContext).inflate(
@@ -275,6 +283,9 @@ public class QSPanel extends LinearLayout implements Tunable, Callback, Brightne
         tunerService.addTunable(this, QS_SHOW_AUTO_BRIGHTNESS);
         tunerService.addTunable(this, QS_SHOW_BRIGHTNESS_SLIDER);
         tunerService.addTunable(this, QS_SHOW_BRIGHTNESS_BUTTONS);
+
+        mSettingObserver.observe();
+        mSettingObserver.update();
 
         if (mHost != null) {
             setTiles(mHost.getTiles());
@@ -430,7 +441,7 @@ public class QSPanel extends LinearLayout implements Tunable, Callback, Brightne
     }
 
     public void updateBrightnessMirror() {
-        if (mBrightnessMirrorController != null) {
+        if (mBrightnessMirrorController != null && !mQSBrightnessSlider) {
             ToggleSliderView brightnessSlider = findViewById(R.id.brightness_slider);
             ToggleSliderView mirrorSlider = mBrightnessMirrorController.getMirror()
                     .findViewById(R.id.brightness_slider);
@@ -467,6 +478,35 @@ public class QSPanel extends LinearLayout implements Tunable, Callback, Brightne
 
     public boolean isExpanded() {
         return mExpanded;
+    }
+
+    private final class SettingObserver extends ContentObserver {
+        public SettingObserver(Handler handler) {
+            super(handler);
+        }
+
+        void observe() {
+            ContentResolver resolver = mContext.getContentResolver();
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.BRIGHTNESS_SLIDER_QS_UNEXPANDED),
+                    false, this, UserHandle.USER_ALL);
+            update();
+        }
+
+        @Override
+        public void onChange(boolean selfChange, Uri uri) {
+            super.onChange(selfChange, uri);
+            update();
+        }
+
+        public void update() {
+            mQSBrightnessSlider = Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.BRIGHTNESS_SLIDER_QS_UNEXPANDED, 0) != 0;
+
+            if (mQSBrightnessSlider) {
+                removeView(mBrightnessView);
+            }
+        }
     }
 
     public void setListening(boolean listening) {

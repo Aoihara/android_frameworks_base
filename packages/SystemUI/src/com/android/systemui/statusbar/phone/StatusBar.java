@@ -706,6 +706,7 @@ public class StatusBar extends SystemUI implements DemoMode,
     protected FalsingManager mFalsingManager;
     private final SysuiStatusBarStateController mStatusBarStateController =
             (SysuiStatusBarStateController) Dependency.get(StatusBarStateController.class);
+    private boolean mUnexpandedQSBrightnessSlider;
 
     private final KeyguardUpdateMonitorCallback mUpdateCallback =
             new KeyguardUpdateMonitorCallback() {
@@ -2399,6 +2400,7 @@ public class StatusBar extends SystemUI implements DemoMode,
                     false, this, UserHandle.USER_ALL);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.QS_PANEL_BG_COLOR_WALL),
+                    Settings.System.BRIGHTNESS_SLIDER_QS_UNEXPANDED),
                     false, this, UserHandle.USER_ALL);
         }
 
@@ -2460,6 +2462,8 @@ public class StatusBar extends SystemUI implements DemoMode,
                     uri.equals(Settings.System.getUriFor(Settings.System.QS_PANEL_BG_COLOR_WALL)) ||
                     uri.equals(Settings.System.getUriFor(Settings.System.QS_PANEL_BG_USE_ACCENT))) {
                 mQSPanel.getHost().reloadAllTiles();
+            } else if (uri.equals(Settings.System.getUriFor(Settings.System.BRIGHTNESS_SLIDER_QS_UNEXPANDED))) {
+                updateBrightnessSliderOverlay();
             }
             update();
         }
@@ -2485,6 +2489,7 @@ public class StatusBar extends SystemUI implements DemoMode,
         updateKeyguardStatusSettings();
         updateChargingAnimation();
         updateQSPanel();
+        updateBrightnessSliderOverlay();
         handleCutout(null);
         }
     }
@@ -2619,6 +2624,23 @@ public class StatusBar extends SystemUI implements DemoMode,
                 Settings.System.LOCKSCREEN_CHARGING_ANIMATION_STYLE, 1, UserHandle.USER_CURRENT);
         if (mKeyguardIndicationController != null) {
             mKeyguardIndicationController.updateChargingIndication(mChargingAnimation);
+        }
+    }
+
+    public void updateBrightnessSliderOverlay() {
+        boolean UnexpandedQSBrightnessSlider = Settings.System.getIntForUser(mContext.getContentResolver(),
+                        Settings.System.BRIGHTNESS_SLIDER_QS_UNEXPANDED, 0, UserHandle.USER_CURRENT) == 1;
+        if (mUnexpandedQSBrightnessSlider != UnexpandedQSBrightnessSlider){
+            mUnexpandedQSBrightnessSlider = UnexpandedQSBrightnessSlider;
+            mUiOffloadThread.submit(() -> {
+                final IOverlayManager mOverlayManager = IOverlayManager.Stub.asInterface(
+                                ServiceManager.getService(Context.OVERLAY_SERVICE));
+                try {
+                    mOverlayManager.setEnabled("com.extendedui.overlay.brightnessslider",
+                                mUnexpandedQSBrightnessSlider, mLockscreenUserManager.getCurrentUserId());
+                } catch (RemoteException ignored) {
+                }
+            });
         }
     }
 
